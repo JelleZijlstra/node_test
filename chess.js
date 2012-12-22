@@ -2,6 +2,7 @@
  * Functionality to represent a chess board.
  */
 //var jchess = (function($) {
+	"use strict";
 	var tests = [];
 
 	function AssertionFailure(message) {
@@ -1179,4 +1180,11 @@
 		});
 	}
 	runTests();
+
+/*
+	return {
+		ChessBoard: ChessBoard,
+		Position: Position,
+		runTests: runTests
+	};*/
 //})(jQuery);
