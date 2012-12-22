@@ -2,6 +2,8 @@
  * Functionality to represent a chess board.
  */
 //var jchess = (function($) {
+	var tests = [];
+
 	function AssertionFailure(message) {
 		this.message = message;
 	}
@@ -20,6 +22,28 @@
 		}
 	}
 
+	/*
+	 * Check whether two arrays are equal.
+	 */
+	function equalArrays(arr1, arr2) {
+		// destructive sorting - it's OK
+		arr1.sort();
+		arr2.sort();
+		return (arr1.length === arr2.length) && arr1.every(function(elt, key) {
+			return elt === arr2[key];
+		});
+	}
+	tests.push(function() {
+		assert(equalArrays([], []), "empty arrays are equal");
+		assert(equalArrays([3], [3]), "equal arrays are equal");
+		assert(equalArrays(["hello", 2], [2, "hello"]), "equal arrays in different order are still equal");
+		assert(!equalArrays([3], [3, 4]), "different-length arrays are not equal");
+		assert(!equalArrays([3, 4], [2,4]), "arrays with different elements are not equal");
+	});
+
+	/*
+	 * Returns true if and only if arr contains an element for which function f returns true.
+	 */
 	function hasAny(arr, f) {
 		for(var i = 0, len = arr.length; i < len; i++) {
 			if(f(arr[i])) {
@@ -28,6 +52,23 @@
 		}
 		return false;
 	}
+	tests.push(function() {
+		assert(!hasAny([], function() { 
+			return true;
+		}), "empty array doesn't have anything");
+
+		assert(hasAny([3], function() {
+			return true;
+		}), "array does have something");
+
+		assert(!hasAny([2], function(elt) {
+			return elt === 3;
+		}), "array doesn't have 3");
+	});
+
+	/*
+	 * Pushes the return value of onto array, ignoring exceptions thrown while f is executed.
+	 */
 	function silentAdd(array, f) {
 		try {
 			array.push(f());
@@ -35,7 +76,21 @@
 			// ignore
 		}
 	}
+	tests.push(function() {
+		var arr = [];
+		silentAdd(arr, function() {
+			 return 3;
+		});
+		assert(arr[0] === 3, "3 was added");
+		silentAdd(arr, function() {
+			assert(false, "throw an error");
+		});
+		assert(arr.length === 1, "nothing was added");
+	});
 
+	/*
+	 * Returns a function that, if executed, returns what would have been returned if the methods in methods were consecutively called on object.
+	 */
 	function chainMethods(object, methods) {
 		return function() {
 			var out = object;
@@ -119,6 +174,13 @@
 		var myInt = this.toInt();
 		return (myInt === other) || (myInt === pos(other).toInt());
 	};
+	tests.push(function() {
+		assert(pos("a1").equals(pos(0)), "cannot convert a1");
+		assert(pos("b1").equals(pos(1)), "cannot convert b1");
+		assert(pos("a2").equals(pos(8)), "cannot convert a2");
+		assert(pos("h8").equals(pos(63)), "cannot convert h8");
+	});
+
 	Position.prototype.downleft = function() {
 		return this.down().left();
 	};
@@ -131,6 +193,31 @@
 	Position.prototype.upright = function() {
 		return this.up().right();
 	};
+	tests.push(function() {
+		assert(pos(0).row() === 0, "incorrect row");
+		assert(pos(8).row() === 1, "incorrect row");
+		assert(pos(63).row() === 7, "incorrect row");
+
+		assert(pos(0).column() === 0, "incorrect column");
+		assert(pos(1).column() === 1, "incorrect column");
+		assert(pos(63).column() === 7, "incorrect column");
+
+		assert(pos("a1").up().equals(pos("a2")), "incorrect up");
+		assertThrows(function() { pos("h8").up(); }, "can't go up");
+		assert(pos("a2").down().equals(pos("a1")), "incorrect down");
+		assertThrows(function() { pos("a1").down(); }, "can't go down");
+		assert(pos("b1").left().equals(pos("a1")), "incorrect left");
+		assertThrows(function() { pos("a1").left(); }, "can't go left");
+		assert(pos("a1").right().equals(pos("b1")), "incorrect right");
+		assertThrows(function() { pos("h8").right(); }, "can't go right");
+	});
+
+	function str(array) {
+		return array.map(function(elt) {
+			return elt.toString();
+		});
+	}
+
 	Position.prototype.knightMoves = function() {
 		var out = [];
 		var pos = this;
@@ -149,6 +236,12 @@
 		});
 		return out;
 	};
+	tests.push(function() {
+		assert(equalArrays(str(pos("a1").knightMoves()), ["b3", "c2"]), "two knight moves from a1");
+		var d4moves = ["b3", "b5", "c6", "e6", "f5", "f3", "e2", "c2"];
+		assert(equalArrays(str(pos("d4").knightMoves()), d4moves), "eight knight moves from d4");
+		assert(equalArrays(str(pos("g8").knightMoves()), ["h6", "f6", "e7"]), "three knight moves from g8");
+	})
 	Position.prototype.kingMoves = function() {
 		var out = [];
 		var pos = this;
@@ -159,6 +252,12 @@
 		});
 		return out;
 	};
+	tests.push(function() {
+		assert(equalArrays(str(pos("a1").kingMoves()), ["b1", "b2", "a2"]), "three king moves from a1");
+		var d4moves = ["c3", "d3", "e3", "e4", "e5", "d5", "c5", "c4"];
+		assert(equalArrays(str(pos("d4").kingMoves()), d4moves), "eight king moves from d4");
+		assert(equalArrays(str(pos("g8").kingMoves()), ["h8", "h7", "g7", "f7", "f8"]), "five king moves from g8");
+	})
 	Position.prototype.isBetween = function(bound1, bound2) {
 		var direction = this.directionTo(bound1);
 		if(direction === null) {
@@ -195,6 +294,12 @@
 		});
 		return output;
 	};
+	tests.push(function() {
+		assert(pos("a2").isBetween(pos("a1"), pos("a3")), "a2 is between a1 and a3");
+		assert(!pos("a2").isBetween(pos("a1"), pos("c3")), "a2 is not between a1 and c3");
+		assert(pos("b2").isBetween(pos("a1"), pos("c3")), "b2 is between a1 and c3");
+		assert(pos("d4").isBetween(pos("a1"), pos("h8")), "d4 is between a1 and h8");
+	})
 
 	/*
 	 * Enumerated values.
@@ -1067,31 +1172,9 @@
 	 * Testing
 	 */
 	function runTests() {
-		assert(positionToInt("a1") === 0, "cannot convert a1");
-		assert(positionToInt("b1") === 1, "cannot convert b1");
-		assert(positionToInt("a2") === 8, "cannot convert a2");
-		assert(positionToInt("h8") === 63, "cannot convert h8");
-
-		assert(intToPosition(0) === "a1", "cannot convert to a1");
-		assert(intToPosition(1) === "b1", "cannot convert to b1");
-		assert(intToPosition(8) === "a2", "cannot convert to a2");
-		assert(intToPosition(63) === "h8", "cannot convert to h8");
-
-		assert(row(0) === 0, "incorrect row");
-		assert(row(8) === 1, "incorrect row");
-		assert(row(63) === 7, "incorrect row");
-
-		assert(column(0) === 0, "incorrect column");
-		assert(column(1) === 1, "incorrect column");
-		assert(column(63) === 7, "incorrect column");
-
-		assert(up(0) === 8, "incorrect up");
-		assertThrows(function() { up(63); }, "can't go up");
-		assert(down(8) === 0, "incorrect down");
-		assertThrows(function() { down(0); }, "can't go down");
-		assert(left(1) === 0, "incorrect left");
-		assertThrows(function() { left(0); }, "can't go left");
-		assert(right(0) === 1, "incorrect right");
-		assertThrows(function() { right(63); }, "can't go right");
+		tests.forEach(function(testSuite) {
+			testSuite();
+		});
 	}
+	runTests();
 //})(jQuery);
