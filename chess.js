@@ -79,7 +79,7 @@
 	tests.push(function() {
 		var arr = [];
 		silentAdd(arr, function() {
-			 return 3;
+			return 3;
 		});
 		assert(arr[0] === 3, "3 was added");
 		silentAdd(arr, function() {
@@ -98,7 +98,7 @@
 				out = out[method]();
 			});
 			return out;
-		}
+		};
 	}
 
 	/*
@@ -241,7 +241,8 @@
 		var d4moves = ["b3", "b5", "c6", "e6", "f5", "f3", "e2", "c2"];
 		assert(equalArrays(str(pos("d4").knightMoves()), d4moves), "eight knight moves from d4");
 		assert(equalArrays(str(pos("g8").knightMoves()), ["h6", "f6", "e7"]), "three knight moves from g8");
-	})
+	});
+
 	Position.prototype.kingMoves = function() {
 		var out = [];
 		var pos = this;
@@ -257,7 +258,8 @@
 		var d4moves = ["c3", "d3", "e3", "e4", "e5", "d5", "c5", "c4"];
 		assert(equalArrays(str(pos("d4").kingMoves()), d4moves), "eight king moves from d4");
 		assert(equalArrays(str(pos("g8").kingMoves()), ["h8", "h7", "g7", "f7", "f8"]), "five king moves from g8");
-	})
+	});
+
 	Position.prototype.isBetween = function(bound1, bound2) {
 		var direction = this.directionTo(bound1);
 		if(direction === null) {
@@ -266,7 +268,7 @@
 		return direction === bound2.directionTo(this);
 	};
 	Position.prototype.directionTo = function(to) {
-	    // return null for not on same line, 1 for downleft, 2 for down, 3 for downright, 4 for right, 5 for upright, 6 for up, 7 for upleft, 8 for left
+		// return null for not on same line, 1 for downleft, 2 for down, 3 for downright, 4 for right, 5 for upright, 6 for up, 7 for upleft, 8 for left
 		var myColumn = this.column();
 		var myRow = this.row();
 		var theirColumn = to.column();
@@ -299,7 +301,7 @@
 		assert(!pos("a2").isBetween(pos("a1"), pos("c3")), "a2 is not between a1 and c3");
 		assert(pos("b2").isBetween(pos("a1"), pos("c3")), "b2 is between a1 and c3");
 		assert(pos("d4").isBetween(pos("a1"), pos("h8")), "d4 is between a1 and h8");
-	})
+	});
 
 	/*
 	 * Enumerated values.
@@ -459,32 +461,32 @@
 		var pieceAtFieldToMoveTo = board.getField(to);
 		var isCapturing = pieceAtFieldToMoveTo.piece() !== NO_PIECE;
 
-	    if(movingPiece.piece() == KING && from.column() == 5 && (to.column() == 3 || to.column() == 7)) {
-	        if(to.column() == 7) {
-		        // king's rochade
-	            return "0-0";
-	        } else {
-	        	// queen's rochade
-	        	return "0-0-0";
-	        }
-	    } else {
-	    	var output = "";
-	        if(movingPiece.piece() == PAWN) {
-	            if(isCapturing) {
-	            	output += from.algebraicColumn();
-	            }
-	        } else {
-	        	output += pieceToString(movingPiece.piece());
-	        }
-	        if(isCapturing) {
-	        	output += "x";
-	        }
-	        output += to.toString();
-	        if(move.promotedPiece()) {
-	        	output += pieceToString(move.promotedPiece());
-	        }
-	        return output;
-	    }
+		if(movingPiece.piece() == KING && from.column() == 5 && (to.column() == 3 || to.column() == 7)) {
+			if(to.column() == 7) {
+				// king's rochade
+				return "0-0";
+			} else {
+				// queen's rochade
+				return "0-0-0";
+			}
+		} else {
+			var output = "";
+			if(movingPiece.piece() == PAWN) {
+				if(isCapturing) {
+					output += from.algebraicColumn();
+				}
+			} else {
+				output += pieceToString(movingPiece.piece());
+			}
+			if(isCapturing) {
+				output += "x";
+			}
+			output += to.toString();
+			if(move.promotedPiece()) {
+				output += pieceToString(move.promotedPiece());
+			}
+			return output;
+		}
 	};
 
 	/*
@@ -518,11 +520,11 @@
 		for(var i = 0; i < 8; i++) {
 			board.push(wp);
 		}
-		for(var i = 0; i < 4 * 8; i++) {
+		for(var j = 0; j < 4 * 8; j++) {
 			board.push(ChessPieceWithColor.empty());
 		}
 		var bp = new ChessPieceWithColor(PAWN, BLACK);
-		for(var i = 0; i < 8; i++) {
+		for(var k = 0; k < 8; k++) {
 			board.push(bp);
 		}
 		board.push(new ChessPieceWithColor(ROOK, BLACK));
@@ -620,7 +622,7 @@
 		};
 		this.hasAllowedMoves = function() {
 			return allowedAtNextMove.length > 0;
-		}
+		};
 		this.moveIsLegal = function(from, to) {
 			return typeof allowedAtNextMove[from.toInt()][to.toInt()] !== 'undefined';
 		};
@@ -779,18 +781,18 @@
 		}
 		if(movingPiece === ROOK) {
 			if(toPlay === WHITE) {
-	            // the check on move.to is necessary because otherwise a user may be able to do a rochade after having the A rook captured and moving the H rook over to A1. Alternatively, we could check for capturing on A1, but this is simpler.
-            	if(from.equals("a1") || to.equals("a1")) {
-            		this.disallowRochade(WHITE, QUEEN);
-            	} else if(from.equals("h1") || to.equals("h1")) {
-            		this.disallowRochade(WHITE, KING);
-            	}
+				// the check on move.to is necessary because otherwise a user may be able to do a rochade after having the A rook captured and moving the H rook over to A1. Alternatively, we could check for capturing on A1, but this is simpler.
+				if(from.equals("a1") || to.equals("a1")) {
+					this.disallowRochade(WHITE, QUEEN);
+				} else if(from.equals("h1") || to.equals("h1")) {
+					this.disallowRochade(WHITE, KING);
+				}
 			} else {
-            	if(from.equals("a8") || to.equals("a8")) {
-            		this.disallowRochade(BLACK, QUEEN);
-            	} else if(from.equals("h8") || to.equals("h8")) {
-            		this.disallowRochade(BLACK, KING);
-            	}
+				if(from.equals("a8") || to.equals("a8")) {
+					this.disallowRochade(BLACK, QUEEN);
+				} else if(from.equals("h8") || to.equals("h8")) {
+					this.disallowRochade(BLACK, KING);
+				}
 			}
 		}
 	};
@@ -985,7 +987,7 @@
 								board.addAllowedMove(position, neighborPosition[direction]());
 							}
 						}
-					}
+					};
 					['left', 'right'].forEach(checker);
 				}
 				break;
@@ -1038,7 +1040,7 @@
 		var myColor = this.toPlay();
 		var kingPosition = this.findKing(myColor);
 		var isOK = true;
-	    // if the king is moving, always allow it; other checks will have caught any issues
+		// if the king is moving, always allow it; other checks will have caught any issues
 		if(!kingPosition.equals(from)) {
 			this.eachCheckStatus(function(status) {
 				if(!isOK) {
@@ -1166,7 +1168,7 @@
 		} else {
 			return balance;
 		}
-	}
+	};
 
 	/*
 	 * Testing
