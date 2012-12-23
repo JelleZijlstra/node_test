@@ -39,7 +39,7 @@ var jchess = (function($) {
 		assert(equalArrays([3], [3]), "equal arrays are equal");
 		assert(equalArrays(["hello", 2], [2, "hello"]), "equal arrays in different order are still equal");
 		assert(!equalArrays([3], [3, 4]), "different-length arrays are not equal");
-		assert(!equalArrays([3, 4], [2,4]), "arrays with different elements are not equal");
+		assert(!equalArrays([3, 4], [2, 4]), "arrays with different elements are not equal");
 	});
 
 	/*
@@ -357,6 +357,16 @@ var jchess = (function($) {
 			case BISHOP: return "B";
 			case KNIGHT: return "N";
 			case PAWN: return "";
+		}
+	}
+	function pieceFromString(str) {
+		switch(str.toLowerCase()) {
+			case "king": return KING;
+			case "queen": return QUEEN;
+			case "rook": return ROOK;
+			case "bishop": return BISHOP;
+			case "knight": return KNIGHT;
+			case "pawn": return PAWN;
 		}
 	}
 	function getMaterialWorth(piece) {
@@ -763,9 +773,9 @@ var jchess = (function($) {
 		if(movingPiece === PAWN && (to.column() !== from.column()) && !this.positionIsEnemy(to)) {
 			var field;
 			if(myColor === WHITE) {
-				field = (to === from.left().up()) ? from.left() : from.right();
+				field = (to === from.upleft()) ? from.left() : from.right();
 			} else {
-				field = (to === from.left().down()) ? from.left() : from.right();
+				field = (to === from.downleft()) ? from.left() : from.right();
 			}
 			changes.push(new BoardChange(field, NO_PIECE, NO_PLAYER));
 		}
@@ -1027,8 +1037,8 @@ var jchess = (function($) {
 							// off the board
 							return;
 						}
-						if(this.positionIsEnemy(neighborPosition) && this.getField(neighborPosition).piece() === PAWN) {
-							var lastMove = this.lastMove();
+						if(board.positionIsEnemy(neighborPosition) && board.getField(neighborPosition).piece() === PAWN) {
+							var lastMove = board.lastMove();
 							if(lastMove.to().equals(neighborPosition) && lastMove.from().equals(neighborPosition[direction]()[direction]())) {
 								board.addAllowedMove(position, neighborPosition[direction]());
 							}
@@ -1238,6 +1248,9 @@ var jchess = (function($) {
 		STILL_PLAYING: STILL_PLAYING,
 		DRAW: DRAW,
 		WHITE_WON: WHITE_WON,
-		BLACK_WON: BLACK_WON
+		BLACK_WON: BLACK_WON,
+		pieceFromString: pieceFromString,
+		NO_PIECE: NO_PIECE,
+		ILLEGAL_MOVE: ILLEGAL_MOVE
 	};
 })(jQuery);

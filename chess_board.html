@@ -3,22 +3,22 @@
 <head>
 <title>Chess test</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="chess.css"></link>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-<script type="text/javascript" src="chess.js"></script>
-<script type="text/javascript" src="chessui.js"></script>
-<script type="text/javascript">
-	var board, $board;
-	$(function() {
-		board = $('#chess-loc').chess();
-		$board = $('#chess-loc').find('.chess-board');
-	});
-	function makeMove(from, to) {
-		var move = new jchess.ChessMove(jchess.pos(from), jchess.pos(to));
-		console.log(board.applyMove(move));
-		chessui.applyBoard($board, board);
-	}
-</script>
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+	<link rel="stylesheet" type="text/css" href="chess.css"></link>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+	<script type="text/javascript" src="chess.js"></script>
+	<script type="text/javascript" src="chessui.js"></script>
+	<script type="text/javascript">
+		var board, $board;
+		$(function() {
+			board = $('#chess-loc').chess();
+			$board = $('#chess-loc').find('.chess-board');
+		});
+		function makeMove(from, to) {
+			console.log(board.makeMoveFromTo(jchess.pos(from), jchess.pos(to)));
+		}
+	</script>
 </head>
 <body>
 	<div id="chess-loc"></div>

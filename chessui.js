@@ -73,7 +73,7 @@ var chessui = (function($) {
 				var position = getPosition($(this));
 				view.clearHighlighting();
 				if(activeField !== undefined) {
-					view.makeMove(activeField, position);
+					view.makeMoveFromTo(activeField, position);
 					activeField = undefined;
 				} else if(board.positionIsFriendly(position)) {
 					activeField = position;
@@ -121,12 +121,38 @@ var chessui = (function($) {
 		return this.getDOMBoard().find('.chess-field[data-chess-index=' + position.toInt() + ']');
 	};
 
-	BoardView.prototype.makeMove = function(from, to) {
-		var move = new jchess.ChessMove(from, to);
-		var response = this.getBackendBoard().applyMove(move);
-		this.setStatus(response[0]);
-		this.setToPlay(jchess.playerToString(response[1]));
-		this.applyBoard();		
+	BoardView.prototype.makeMoveFromTo = function(from, to) {
+		return this.makeMove(new jchess.ChessMove(from, to));
+	};
+
+	BoardView.prototype.makeMove = function(move) {
+		var view = this;
+		function doIt(move) {
+			var response = view.getBackendBoard().applyMove(move);
+			if(response[0] !== jchess.ILLEGAL_MOVE) {
+				view.setStatus(response[0]);
+				view.setToPlay(jchess.playerToString(response[1]));
+				view.applyBoard();
+				switch(response[0]) {
+					case jchess.WHITE_WON: uiTools.alert({title: "Game Over", text: "White won"}); break;
+					case jchess.BLACK_WON: uiTools.alert({title: "Game Over", text: "Black won"}); break;
+					case jchess.DRAW: uiTools.alert({title: "Game Over", text: "Draw"}); break;
+				}
+			}
+		}
+		if(move.isPromotion(this.getBackendBoard()) && move.promotedPiece() === jchess.NO_PIECE) {
+			uiTools.menu({
+				title: 'Promotion',
+				text: 'Choose what piece to promote to',
+				options: ['Queen', 'Rook', 'Bishop', 'Knight'],
+				callback: function(piece) {
+					move.setPromotedPiece(jchess.pieceFromString(piece));
+					doIt(move);
+				}
+			});
+		} else {
+			doIt(move);
+		}
 	};
 
 	function getPosition($cell) {
@@ -135,10 +161,35 @@ var chessui = (function($) {
 
 	$.fn.chess = function() {
 		var view = new BoardView($(this));
-		return view.getBackendBoard();
+		return view;
 	};
 
 	return {
 		BoardView: BoardView
 	};
 })(jQuery);
+
+var uiTools = {
+	menu: function(paras) {
+		var $dialog = $("<div>").attr('title', paras.title).append($('<p>').addClass('uiTools-menu-line').html(paras.text));
+		function callback(name) {
+			return function() {
+				$dialog.dialog('close');
+				paras.callback(name);
+			}
+		}
+		var buttons = {};
+		paras.options.forEach(function(button) {
+			buttons[button] = callback(button);
+		});
+		$dialog.dialog({
+			resizable: false,
+			modal: true,
+			buttons: buttons
+		});
+	},
+	alert: function(paras) {
+		var $dialog = $("<div>").attr('title', paras.title).html(paras.text);
+		$dialog.dialog();
+	}
+};
