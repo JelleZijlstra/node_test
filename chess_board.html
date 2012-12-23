@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Chess test</title>
+<link rel="stylesheet" type="text/css" href="chess.css"></link>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript" src="chess.js"></script>
+<script type="text/javascript" src="chessui.js"></script>
+<script type="text/javascript">
+	var board, $board;
+	$(function() {
+		board = $('#chess-loc').chess();
+		$board = $('#chess-loc').find('.chess-board');
+	});
+	function makeMove(from, to) {
+		var move = new jchess.ChessMove(jchess.pos(from), jchess.pos(to));
+		console.log(board.applyMove(move));
+		chessui.applyBoard($board, board);
+	}
+</script>
+</head>
+<body>
+	<div id="chess-loc"></div>
+</body>
+</html>

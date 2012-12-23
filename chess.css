@@ -1,0 +1,92 @@
+/*
+ * chess.css
+ *
+ * CSS for the chess board.
+ */
+.chess-board {
+	border: none;
+	border-spacing: 0em;
+}
+
+.chess-row {
+	
+}
+
+.chess-field {
+	padding: 0;
+}
+
+.chess-field > div {
+	height: 3.5em;
+	width: 3.5em;
+	margin: 0;
+	padding: 0;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.chess-even {
+	background-color: gray;
+	border: solid 4px gray;
+}
+
+.chess-odd {
+	background-color: white;
+	border: solid 4px white;
+}
+
+.chess-highlighted-yellow {
+	border: solid 4px yellow !important;
+}
+
+.chess-highlighted-red {
+	border: solid 4px red !important;
+}
+
+.chess-black-king {
+	background-image: url(img/black-king.png);
+}
+
+.chess-black-queen {
+	background-image: url(img/black-queen.png);
+}
+
+.chess-black-rook {
+	background-image: url(img/black-rook.png);
+}
+
+.chess-black-bishop {
+	background-image: url(img/black-bishop.png);
+}
+
+.chess-black-knight {
+	background-image: url(img/black-knight.png);
+}
+
+.chess-black-pawn {
+	background-image: url(img/black-pawn.png);
+}
+
+.chess-white-king {
+	background-image: url(img/white-king.png);
+}
+
+.chess-white-queen {
+	background-image: url(img/white-queen.png);
+}
+
+.chess-white-rook {
+	background-image: url(img/white-rook.png);
+}
+
+.chess-white-bishop {
+	background-image: url(img/white-bishop.png);
+}
+
+.chess-white-knight {
+	background-image: url(img/white-knight.png);
+}
+
+.chess-white-pawn {
+	background-image: url(img/white-pawn.png);
+}

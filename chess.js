@@ -1,7 +1,7 @@
 /*
  * Functionality to represent a chess board.
  */
-//var jchess = (function($) {
+var jchess = (function($) {
 	"use strict";
 	var tests = [];
 
@@ -313,6 +313,18 @@
 	function isValidPlayer(player) {
 		return player >= NO_PLAYER && player <= BLACK;
 	}
+	function playerIsEmpty(player) {
+		assert(isValidPlayer(player), "Invalid player");
+		return player === NO_PLAYER;
+	}
+	function playerToString(player) {
+		assert(isValidPlayer(player), "Invalid player");
+		switch(player) {
+			case NO_PLAYER: return "";
+			case WHITE: return "White";
+			case BLACK: return "BLACK";
+		}
+	}
 
 	var NO_PIECE = 0;
 	var KING = 1;
@@ -325,6 +337,17 @@
 		return piece >= NO_PIECE && piece <= PAWN;
 	}
 
+	function pieceToFullName(piece) {
+		assert(isValidPiece(piece), "Invalid piece");
+		switch(piece) {
+			case KING: return "King";
+			case QUEEN: return "Queen";
+			case ROOK: return "Rook";
+			case BISHOP: return "Bishop";
+			case KNIGHT: return "Knight";
+			case PAWN: return "Pawn";
+		}
+	}
 	function pieceToString(piece) {
 		assert(isValidPiece(piece), "Invalid piece");
 		switch(piece) {
@@ -386,7 +409,7 @@
 	 * BoardChange class.
 	 */
 	function BoardChange(position, piece, color) {
-		assert(isValidPosition(position), "Invalid position");
+		assert(position.isValidPosition(), "Invalid position");
 		assert(isValidPlayer(color), "Invalid color");
 		assert(isValidPiece(piece), "Invalid piece");
 		this.position = function() {
@@ -462,8 +485,8 @@
 		var pieceAtFieldToMoveTo = board.getField(to);
 		var isCapturing = pieceAtFieldToMoveTo.piece() !== NO_PIECE;
 
-		if(movingPiece.piece() == KING && from.column() == 5 && (to.column() == 3 || to.column() == 7)) {
-			if(to.column() == 7) {
+		if(movingPiece.piece() == KING && from.column() == 4 && (to.column() == 2 || to.column() == 6)) {
+			if(to.column() == 6) {
 				// king's rochade
 				return "0-0";
 			} else {
@@ -483,7 +506,7 @@
 				output += "x";
 			}
 			output += to.toString();
-			if(move.promotedPiece()) {
+			if(this.promotedPiece()) {
 				output += pieceToString(move.promotedPiece());
 			}
 			return output;
@@ -558,7 +581,6 @@
 		/*
 		 * Initialization
 		 */
-		this.setBoard(startingBoard);
 
 		rochades[WHITE] = [];
 		rochades[WHITE][KING] = true;
@@ -566,8 +588,6 @@
 		rochades[BLACK] = [];
 		rochades[BLACK][KING] = true;
 		rochades[BLACK][QUEEN] = true;
-
-		this.prepareNextMove();
 
 		/*
 		 * Public methods with access to private state.
@@ -592,7 +612,7 @@
 			return playerToPlay;
 		};
 		this.changePlayer = function() {
-			playerToPlay = this.enemyPlayer();
+			playerToPlay = this.enemyColor();
 			return playerToPlay;
 		};
 		this.incrementFiftyMove = function() {
@@ -625,16 +645,21 @@
 			return allowedAtNextMove.length > 0;
 		};
 		this.moveIsLegal = function(from, to) {
-			return typeof allowedAtNextMove[from.toInt()][to.toInt()] !== 'undefined';
+			return typeof allowedAtNextMove[from.toInt()] !== 'undefined' && typeof allowedAtNextMove[from.toInt()][to.toInt()] !== 'undefined';
 		};
 		this.getMovesForPiece = function(from) {
-			return allowedAtNextMove[from].filter(function(elt) {
-				return typeof elt !== 'undefined';
-			});
+			var moves = allowedAtNextMove[from.toInt()];
+			if(moves === undefined) {
+				return [];
+			} else {
+				return allowedAtNextMove[from.toInt()].filter(function(elt) {
+					return elt !== undefined;
+				});
+			}
 		};
 		this.setCheckStatus = function(status, inCheck) {
 			checkStatus = status;
-			isInCheck = check;
+			isInCheck = inCheck;
 		};
 		this.eachCheckStatus = function(f) {
 			checkStatus.forEach(f);
@@ -647,6 +672,11 @@
 		this.choosePieceToPromoteTo = function() {
 			return QUEEN;
 		};
+
+		// finish initialization
+		this.setBoard(startingBoard);
+
+		this.prepareNextMove();
 	}
 	ChessBoard.prototype.setBoard = function(board) {
 		assert(board.length === 64, "board must have 64 fields");
@@ -654,7 +684,7 @@
 			this.setField(pos(i), board[i]);
 		}
 	};
-	ChessBoard.prototype.enemyPlayer = function() {
+	ChessBoard.prototype.enemyColor = function() {
 		if(this.toPlay() === WHITE) {
 			return BLACK;
 		} else {
@@ -664,7 +694,7 @@
 
 	ChessBoard.prototype.positionIsEnemy = function(position) {
 		var piece = this.getField(position);
-		return piece.color() === this.enemyPlayer();
+		return piece.color() === this.enemyColor();
 	};
 
 	/*
@@ -681,7 +711,7 @@
 				return [BLACK_WON, NO_PLAYER, "0–1"];
 			}
 		}
-		if(!this.moveIsLegal(from, to)) {
+		if(!this.moveIsLegal(move.from(), move.to())) {
 			return [ILLEGAL_MOVE, this.toPlay(), null];
 		}
 		var algebraic = move.getAlgebraicRepresentation(this);
@@ -699,7 +729,7 @@
 
 		var status = this.prepareNextMove();
 
-		return [status, this.toPlay(), move.getAlgebraicRepresentation(), changes];
+		return [status, this.toPlay(), algebraic, changes];
 	};
 
 	/*
@@ -709,7 +739,7 @@
 		var changes = [];
 		var from = move.from();
 		var to = move.to();
-		var myColor = this.playerToPlay();
+		var myColor = this.toPlay();
 		var enemyColor = this.enemyColor();
 		var movingPiece = this.getField(from).piece();
 		var pieceAtFieldToMoveTo = (move.promotedPiece() === NO_PIECE) ? movingPiece : move.promotedPiece();
@@ -811,7 +841,7 @@
 		var status = [];
 		var isInCheck = false;
 		var myColor = this.toPlay();
-		var enemyColor = this.enemyPlayer();
+		var enemyColor = this.enemyColor();
 		var kingPosition = this.findKing(myColor);
 		var board = this;
 
@@ -901,7 +931,7 @@
 			var position = pos(i);
 			var piece = this.getField(position);
 			if(piece.color() === myColor) {
-				this.allowedMovesByPiece(piece.piece(), position);
+				this.allowedMovesForPiece(piece.piece(), position);
 			}
 		}
 		if(this.hasAllowedMoves()) {
@@ -932,7 +962,7 @@
 					}
 				}
 				position.kingMoves().forEach(function(newPosition) {
-					this.addAllowedMoveIfNotInCheck(position, newPosition);
+					board.addAllowedMoveIfNotInCheck(position, newPosition);
 				});
 				break;
 			case QUEEN:
@@ -946,8 +976,8 @@
 				this.addRookMoves(position);
 				break;
 			case KNIGHT:
-				position.knightMoves.forEach(function(newPosition) {
-					this.addAllowedMoveIfPossible(position, newPosition);
+				position.knightMoves().forEach(function(newPosition) {
+					board.addAllowedMoveIfPossible(position, newPosition);
 				});
 				break;
 			case PAWN:
@@ -1034,7 +1064,7 @@
 	};
 	ChessBoard.prototype.addAllowedMoveIfNotInCheck = function(from, to) {
 		if(!this.positionIsInCheck(to)) {
-			this.addAllowedMove(from, to);
+			this.addAllowedMoveIfPossible(from, to);
 		}
 	};
 	ChessBoard.prototype.checkCheckStatus = function(from, to) {
@@ -1085,7 +1115,7 @@
 		];
 		if(simple.some(function(data) {
 			return position[data[1]]().some(function(position) {
-				var piece = this.getField(position);
+				var piece = board.getField(position);
 				return piece.color() === enemyColor && piece.piece() === data[0];
 			});
 		})) {
@@ -1110,9 +1140,9 @@
 		// check for queen, rook, bishop
 		var findChecks = function(method, pieces) {
 			var nextPosition;
-			for(var position = kingPosition, friendPosition = null; ; position = nextPosition) {
+			for(var currPosition = position; ; currPosition = nextPosition) {
 				try {
-					nextPosition = position[method]();
+					nextPosition = currPosition[method]();
 				} catch(e) {
 					// we've reached the end of the board
 					return false;
@@ -1145,7 +1175,7 @@
 	ChessBoard.prototype.findKing = function(color) {
 		for(var i = 0; i < 64; i++) {
 			var position = pos(i);
-			var piece = this.getField(piece);
+			var piece = this.getField(position);
 			if(piece.piece() === KING && piece.color() === color) {
 				return position;
 			}
@@ -1181,10 +1211,14 @@
 	}
 	runTests();
 
-/*
 	return {
 		ChessBoard: ChessBoard,
+		ChessMove: ChessMove,
 		Position: Position,
-		runTests: runTests
-	};*/
-//})(jQuery);
+		pos: pos,
+		runTests: runTests,
+		playerToString: playerToString,
+		playerIsEmpty: playerIsEmpty,
+		pieceToFullName: pieceToFullName,
+	};
+})(jQuery);
