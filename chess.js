@@ -322,7 +322,7 @@ var jchess = (function($) {
 		switch(player) {
 			case NO_PLAYER: return "";
 			case WHITE: return "White";
-			case BLACK: return "BLACK";
+			case BLACK: return "Black";
 		}
 	}
 
@@ -464,6 +464,10 @@ var jchess = (function($) {
 		this.promotedPiece = function() {
 			return promotedPiece;
 		};
+		this.setPromotedPiece = function(piece) {
+			assert(isValidPiece(piece), "Invalid promoted piece");
+			promotedPiece = piece;
+		};
 	}
 	ChessMove.prototype.resetsFiftyMoveRule = function(board) {
 		var fromPiece = board.getField(this.from());
@@ -474,8 +478,19 @@ var jchess = (function($) {
 		var from = this.from();
 		var fromPiece = board.getField(from);
 		if(fromPiece.piece() === KING) {
-			var to = this.to();
-			return from.column() == 4 && (to.column() == 2 || to.column() == 6);
+			var toColumn = this.to().column();
+			return from.column() === 4 && (toColumn === 2 || toColumn === 6);
+		} else {
+			return false;
+		}
+	};
+	ChessMove.prototype.isPromotion = function(board) {
+		var toRow = this.to().row();
+		var toPlay = board.toPlay();
+		if((toRow === 7 && toPlay === WHITE) || (toRow === 0 && toPlay === BLACK)) {
+			return board.getField(from).piece() === PAWN;
+		} else {
+			return false;
 		}
 	};
 	ChessMove.prototype.getAlgebraicRepresentation = function(board) {
@@ -1220,5 +1235,9 @@ var jchess = (function($) {
 		playerToString: playerToString,
 		playerIsEmpty: playerIsEmpty,
 		pieceToFullName: pieceToFullName,
+		STILL_PLAYING: STILL_PLAYING,
+		DRAW: DRAW,
+		WHITE_WON: WHITE_WON,
+		BLACK_WON: BLACK_WON
 	};
 })(jQuery);

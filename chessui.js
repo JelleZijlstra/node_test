@@ -1,11 +1,29 @@
 var chessui = (function($) {
 	"use strict";
 	function BoardView($place) {
+		var $ui = $("<div>").addClass('chess-ui');
+
 		var $board = $("<table>").addClass('chess-board');
+
+		var $data = $("<div>").addClass('chess-data-list');
+
+		var $toPlayLine = $("<p>").append($("<span>").addClass('chess-label').text('To play'));
+		var $toPlay = $("<span>").addClass('chess-toplay');
+		$toPlayLine.append($toPlay);
+
+		var $statusLine = $("<p>").append($("<span>").addClass('chess-label').text('Status'));
+		var $status = $("<span>").addClass('chess-status');
+		$statusLine.append($status);
+
+		$data.append($toPlayLine).append($statusLine);
+		$ui.append($board);
+		$ui.append($data);
 
 		var board = new jchess.ChessBoard();
 
 		var activeField = undefined;
+
+		var currentStatus = jchess.STILL_PLAYING;
 
 		var view = this;
 
@@ -15,6 +33,23 @@ var chessui = (function($) {
 		this.getBackendBoard = function() {
 			return board;
 		};
+		this.setStatus = function(newStatus) {
+			currentStatus = newStatus;
+			var text;
+			switch(newStatus) {
+				case jchess.STILL_PLAYING: text = "playing"; break;
+				case jchess.WHITE_WON: text = "1–0"; break;
+				case jchess.BLACK_WON: text = "0–1"; break;
+				case jchess.DRAW: text = "1/2–1/2"; break;
+			}
+			$status.text(text);
+		};
+		this.setToPlay = function(toPlay) {
+			$toPlay.text(toPlay);
+		};
+
+		this.setStatus(jchess.STILL_PLAYING);
+		this.setToPlay("White");
 
 		for(var row = 7; row >= 0; row--) {
 			var $row = $("<tr>").addClass('chess-row');
@@ -34,25 +69,25 @@ var chessui = (function($) {
 		});
 
 		$board.find('.chess-field').click(function() {
-			var position = getPosition($(this));
-			view.clearHighlighting();
-			if(activeField !== undefined) {
-				var response = board.applyMove(new jchess.ChessMove(activeField, position));
-				console.log(response);
-				view.applyBoard();
-				activeField = undefined;
-			} else if(board.positionIsFriendly(position)) {
-				activeField = position;
-				$(this).addClass('chess-highlighted-red');
-				board.getMovesForPiece(position).forEach(function(move) {
-					view.findCell(move.to()).addClass('chess-highlighted-yellow');
-				});
+			if(currentStatus === jchess.STILL_PLAYING) {
+				var position = getPosition($(this));
+				view.clearHighlighting();
+				if(activeField !== undefined) {
+					view.makeMove(activeField, position);
+					activeField = undefined;
+				} else if(board.positionIsFriendly(position)) {
+					activeField = position;
+					$(this).addClass('chess-highlighted-red');
+					board.getMovesForPiece(position).forEach(function(move) {
+						view.findCell(move.to()).addClass('chess-highlighted-yellow');
+					});
+				}
 			}
 		});
 
 		this.applyBoard();
 
-		$place.append($board);
+		$place.append($ui);
 	}
 
 	BoardView.prototype.iterateFields = function(callback) {
@@ -84,7 +119,16 @@ var chessui = (function($) {
 
 	BoardView.prototype.findCell = function(position) {
 		return this.getDOMBoard().find('.chess-field[data-chess-index=' + position.toInt() + ']');
-	}
+	};
+
+	BoardView.prototype.makeMove = function(from, to) {
+		var move = new jchess.ChessMove(from, to);
+		var response = this.getBackendBoard().applyMove(move);
+		console.log(response);
+		this.setStatus(response[0]);
+		this.setToPlay(jchess.playerToString(response[1]));
+		this.applyBoard();		
+	};
 
 	function getPosition($cell) {
 		return jchess.pos(parseInt($cell.attr('data-chess-index'), 10));
