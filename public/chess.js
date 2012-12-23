@@ -906,8 +906,8 @@ var jchess = (function($) {
 						if(type === DIRECT_CHECK) {
 							isInCheck = true;
 						}
-						return;
 					}
+					return;
 				}
 
 			}
