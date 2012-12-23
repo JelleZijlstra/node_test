@@ -488,7 +488,7 @@ var jchess = (function($) {
 		var toRow = this.to().row();
 		var toPlay = board.toPlay();
 		if((toRow === 7 && toPlay === WHITE) || (toRow === 0 && toPlay === BLACK)) {
-			return board.getField(from).piece() === PAWN;
+			return board.getField(this.from()).piece() === PAWN;
 		} else {
 			return false;
 		}
@@ -522,7 +522,7 @@ var jchess = (function($) {
 			}
 			output += to.toString();
 			if(this.promotedPiece()) {
-				output += pieceToString(move.promotedPiece());
+				output += pieceToString(this.promotedPiece());
 			}
 			return output;
 		}
@@ -1142,7 +1142,7 @@ var jchess = (function($) {
 		if(pawnDirections.some(function(method) {
 			var nextPosition;
 			try {
-				nextPosition = kingPosition[method]();
+				nextPosition = position[method]();
 			} catch(e) {
 				return false;
 			}

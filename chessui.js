@@ -21,7 +21,7 @@ var chessui = (function($) {
 
 		var board = new jchess.ChessBoard();
 
-		var activeField = undefined;
+		var activeField;
 
 		var currentStatus = jchess.STILL_PLAYING;
 
@@ -64,7 +64,7 @@ var chessui = (function($) {
 
 		this.iterateFields(function(position) {
 			// in black fields, sum of row and column is even
-			var isEven = !!((position.column() + position.row()) % 2);
+			var isEven = ((position.column() + position.row()) % 2) !== 0;
 			$(this).addClass(isEven ? 'chess-even' : 'chess-odd');
 		});
 
@@ -101,12 +101,12 @@ var chessui = (function($) {
 		this.clearHighlighting();
 		var board = this.getBackendBoard();
 		this.iterateFields(function(position) {
-			var piece = board.getField(position);
+			var field = board.getField(position);
 			var $div = $(this).find("div");
 			$div.removeClass();
-			if(!jchess.playerIsEmpty(piece.color())) {
-				var color = jchess.playerToString(piece.color()).toLowerCase();
-				var piece = jchess.pieceToFullName(piece.piece()).toLowerCase();
+			if(!jchess.playerIsEmpty(field.color())) {
+				var color = jchess.playerToString(field.color()).toLowerCase();
+				var piece = jchess.pieceToFullName(field.piece()).toLowerCase();
 				var newClassName = 'chess-' + color + '-' + piece;
 				$div.addClass(newClassName);
 			}
@@ -124,7 +124,6 @@ var chessui = (function($) {
 	BoardView.prototype.makeMove = function(from, to) {
 		var move = new jchess.ChessMove(from, to);
 		var response = this.getBackendBoard().applyMove(move);
-		console.log(response);
 		this.setStatus(response[0]);
 		this.setToPlay(jchess.playerToString(response[1]));
 		this.applyBoard();		
